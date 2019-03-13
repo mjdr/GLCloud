@@ -14,12 +14,13 @@ void update() {
 	
 	if(points > 0)
 		display_put_points(p, points);
-	else
+	else {
 		firstFill = false;
-	
-	display_camera()->ry = 0.5+3.141592;
+		printf("Initial fill done\n");
+	}
 	display_camera()->x = 400;
-	display_camera()->z = -400;
+	display_camera()->y = -100;
+	display_camera()->z = -200;
 }
 
 int main(int argc, char *argv[])

@@ -7,7 +7,8 @@
 #include <GL/glut.h>
 #include "mat.h"
 
-#define MAX_POINTS_COUNT 3000000
+#define MAX_POINTS_COUNT 500000
+
 
 #define CHECK_GL_STATUS(T,O,S) { \
   GLint status; \
@@ -40,11 +41,19 @@
 
 #define MIN(a,b) (a) < (b) ? (a) : (b)
 
+typedef struct {
+ int x,y;
+} Mouse;
+
+
 static int screenW = 800;
 static int screenH = 600;
 
 static Camera camera = {
-	.x = 0, .y = 0, .z = 0, .rx = 0, .ry = 0
+	.x = 0, .y = 0, .z = 0, .rx = 0, .ry = 0.5+3.141592
+};
+static Mouse mouse = {
+	.x = 0, .y = 0
 };
 static GLuint shader;
 static GLuint positionLoc;
@@ -86,14 +95,14 @@ void gl_init(void)
 void display(void)
 {
 
-	update();
-	
+  update();
+  
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 
-	calc_view();
-	
+  calc_view();
+  
   glUseProgram(shader);
   
   glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projectionMat);
@@ -125,9 +134,9 @@ void display(void)
 
 void calc_projection()
 {
-	const float zNear = 0.01;
-	const float zFar = 1000;
-  const float fov = 70.0/180.0*3.141592;
+  const float zNear = 0.01;
+  const float zFar = 10000;
+  const float fov = 80.0/180.0*3.141592;
   
   const float a = (float) screenW / (float) screenH;
   const float zm =  zNear - zFar;
@@ -192,7 +201,23 @@ GLuint create_program(GLuint vertexShader, GLuint fragmentShader)
 
 
 
+static void mouse_callback(int x, int y) {
+	int centerX = screenW / 2;
+  int centerY = screenH / 2;
 
+  if(x - centerX != 0.0f || y - centerY != 0.0f) {
+        camera.ry += (x - centerX) * 0.001;
+				camera.rx += (y - centerY) * 0.001;
+	
+        glutWarpPointer(centerX, centerY);
+  }
+	//if(camera.ry > 3.141592/2) camera.ry = 3.141592/2;
+	//if(camera.ry < -3.141592/2) camera.ry = -3.141592/2;
+	
+	mouse.x = x;
+	mouse.y = y;
+	
+}
 static void reshape(int w, int h) {
   glViewport(0, 0, w, h);
   screenW = w;
@@ -259,7 +284,7 @@ void display_init(int argc, char *argv[])
 
   glutDisplayFunc(display);
   glutReshapeFunc(reshape);
-  
+  glutPassiveMotionFunc(mouse_callback);
   gl_init();
   
 }
